@@ -1,0 +1,129 @@
+<div class="container mt-4">
+  <h1>Create new Order</h1>
+  <form [formGroup]="form" (ngSubmit)="sendForm()">
+    <div class="col-md-4">
+      <label class="form-label">Nombre:</label>
+      <input formControlName="name" type="text" class="form-control">
+      @if(form.controls['name'].invalid && form.controls['name'].touched){
+        @if(form.controls['name'].errors?.['name']){
+          <div class="text-danger mt-2">El nombre es obligatorio</div>
+        }
+      }
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Email:</label>
+      <input formControlName="email" type="text" class="form-control">
+      @if(form.controls['email'].invalid && form.controls['email'].touched){
+        @if(form.controls['email'].errors?.['required']){
+        <div class="text-danger">Email obligatorio</div>
+        }}
+        @if (form.get('email')?.errors?.['existMail']) {
+
+        <div class="text-danger">
+            Mail ya existe
+        </div>
+        }
+
+        @if (form.get('email')?.errors?.['moreThanThree']) {
+
+        <div class="text-danger">
+            Este cliente tiene más de 3 pedidos en las últimas 24 horas.
+        </div>
+        }
+    </div>
+
+    <div formArrayName="products">
+      <button type="button" class="btn btn-primary" (click)="addProduct()">+</button>
+
+      @for(product of products.controls; track $index) {
+        <div [formGroupName]="$index">
+          <div class="col-md-4">
+            <label class="form-label">Producto</label>
+            <select class="form-select" [formControl]="selectedProductControl">
+
+              @for (item of productList; track $index) {
+
+              <option [ngValue]="item">{{ item.name }}</option>
+              }
+
+          </select>
+
+            @if(product.get('id')?.hasError('required') && product.get('id')?.touched) {
+              <div class="text-danger">El producto es requerido.</div>
+            }
+            @if (product.get('quantity')?.errors?.['superaStock']) {
+              <div class="text-danger">
+                  Supera el stock disponible.
+              </div>
+              }
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Cantidad:</label>
+            <input formControlName="quantity" type="text" class="form-control">
+            @if(product.get('quantity')?.invalid && product.get('quantity')?.touched){
+              @if(product.get('quantity')?.hasError('required')){
+                <div class="text-danger mt-2">La cantidad es obligatoria</div>
+              }
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Precio:</label>
+            <input formControlName="price" type="text" class="form-control">
+            @if(product.get('price')?.invalid && product.get('price')?.touched){
+              @if(product.get('price')?.hasError('price')){
+                <div class="text-danger mt-2">El precio es obligatorio</div>
+              }
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Stock:</label>
+            <input formControlName="stock" type="text" class="form-control">
+            @if(product.get('stock')?.invalid && product.get('stock')?.touched){
+              @if(product.get('stock')?.hasError('stock')){
+                <div class="text-danger mt-2">El stock es obligatorio</div>
+              }
+            }
+          </div>
+
+          <button type="button" (click)="removeProduct($index)" class="btn btn-danger">x</button>
+        </div>
+      }
+    </div>
+    <div>
+      <h3>Productos seleccionados</h3>
+      <ul>
+        @for(product of products.controls; track $index) {
+            <li>
+              <p>
+                 {{product.get('name')?.value}} - Cantidad: {{product.get('quantity')?.value}} - Percio: {{product.get('price')?.value}} - Stock: {{product.get('stock')?.value}}
+              </p>
+            </li>
+        }
+      </ul>
+    </div>
+  </form>
+
+  @if (products.errors?.['dupllicatedProduct']) {
+    <div class="text-danger">
+        No se pueden agregar productos duplicados en el pedido.
+    </div>
+
+    }
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="text-success">
+          <strong>10% descuento aplicado!</strong>
+      </div>
+      <div class="fw-bold">
+          Total: {{ calcularTotal() | currency }}
+      </div>
+  </div>
+
+  <div class="text-end">
+      <button type="submit" class="btn btn-primary">Create Order</button>
+  </div>
+</div>
